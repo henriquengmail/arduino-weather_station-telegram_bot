@@ -13,6 +13,9 @@ time_t uptime;
 #include "bot.h"
 #include "basicOTA.h"
 
+#include "adc.h"
+//adc_t adc;
+
 void setupWifiManager() {
   WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
   // it is a good practice to make sure your code sets wifi mode how you want it.
@@ -83,6 +86,9 @@ void setup() {
   setupBot();
   yield();
   setupTempSensor();
+  yield();
+  adc.setup();
+  yield();
   setupSoilHumidity();
   yield();
   setupOTA();
@@ -106,12 +112,14 @@ void setup() {
 }
 
 void loop() {
+  adc.readValue();
   delay(min(timer.tick()*1000,(long unsigned int) 59000));
   esp_task_wdt_reset();
   if (timer.size()==0) {
     Log.print("Sem timers, reinicia");
     ESP.restart();
   }
+  Serial.println(adc.getValue());
 }
 /* TODO:
  *  Avisar quando o equipamento entra em operação? ou O webhook deve avisar quando para de receber?

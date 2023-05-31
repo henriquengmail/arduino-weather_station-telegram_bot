@@ -137,6 +137,7 @@ bool checkBot(int) {
           String str;
           str+="Temp: "+String(tempSensor.temperature,1)+" ºC\n";
           str+="Humid: "+String(tempSensor.humidity,1)+" %\n";
+          str+="Press: "+String(tempSensor.pressure,1)+" hPa\n";
           str+="AbsHumid: "+String(tempSensor.abshumidity,1)+" g/m³\n";
           str+="Index: "+String(tempSensor.heatIndex,1)+" ºC\n";
           str+=tempSensor.comfortStatus+"\n";
@@ -287,6 +288,12 @@ bool checkBot(int) {
           info = localtime( &recorde.hmax.dt );
           strftime (buffer,22,"%H:%M",info);
           str+="Hmax: "+String(recorde.hmax.val,1)+" % em " +buffer+"\n";
+          info = localtime( &recorde.pmin.dt );
+          strftime (buffer,22,"%H:%M",info);
+          str+="Pmin: "+String(recorde.pmin.val,1)+" hPa em " +buffer+"\n";
+          info = localtime( &recorde.pmax.dt );
+          strftime (buffer,22,"%H:%M",info);
+          str+="Pmax: "+String(recorde.pmax.val,1)+" hPa em " +buffer+"\n";
           info = localtime( &recorde.dmin.dt );
           strftime (buffer,22,"%H:%M",info);
           str+="Dmin: "+String(recorde.dmin.val,1)+" ºC em " +buffer+"\n";

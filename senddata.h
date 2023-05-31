@@ -35,6 +35,7 @@ bool sendData(int ) {
   payload["heatIndex"] = tempSensor.heatIndex;
   getGas();
   payload["gas"] = mqgas;
+  payload["pressure"] = tempSensor.pressure;
   String out;
   serializeJson(payload, out);
   WiFiClient client;
@@ -76,6 +77,14 @@ bool sendData(int ) {
     if (recorde.hmax.val<tempSensor.humidity) {
       recorde.hmax.val= tempSensor.humidity;
       recorde.hmax.dt = rawtime;
+    }
+    if (recorde.pmin.val>tempSensor.pressure) {
+      recorde.pmin.val= tempSensor.pressure;
+      recorde.pmin.dt = rawtime;
+    }
+    if (recorde.pmax.val<tempSensor.pressure) {
+      recorde.pmax.val= tempSensor.pressure;
+      recorde.pmax.dt = rawtime;
     }
     if (recorde.dmin.val>tempSensor.dewPoint) {
       recorde.dmin.val= tempSensor.dewPoint;
@@ -126,6 +135,10 @@ bool sendData(int ) {
     recorde.hmin.dt = rawtime;
     recorde.hmax.val= tempSensor.humidity;
     recorde.hmax.dt = rawtime;
+    recorde.pmin.val= tempSensor.pressure;
+    recorde.pmin.dt = rawtime;
+    recorde.pmax.val= tempSensor.pressure;
+    recorde.pmax.dt = rawtime;
     recorde.dmin.val= tempSensor.dewPoint;
     recorde.dmin.dt = rawtime;
     recorde.dmax.val= tempSensor.dewPoint;

@@ -3,10 +3,14 @@
 
 #include <DHTesp.h>
 #include <math.h>
+#include "BME280I2C.h"
+#include "EnvironmentCalculations.h"
+
 DHTesp dht;
 struct _tempSensor {
   float temperature;
   float humidity;
+  float pressure;
   float heatIndex;
   float dewPoint;
   float abshumidity;
@@ -23,6 +27,8 @@ struct _recorde {
   minimax tmax;
   minimax hmin;
   minimax hmax;
+  minimax pmin;
+  minimax pmax;
   minimax dmin;
   minimax dmax;
   minimax amin;
@@ -101,6 +107,36 @@ bool getTemperature() {
   return true;
 }
 
+BME280I2C::Settings settings(
+   BME280::OSR_X1,
+   BME280::OSR_X1,
+   BME280::OSR_X1,
+   BME280::Mode_Forced,
+   BME280::StandbyTime_1000ms,
+   BME280::Filter_Off,
+   BME280::SpiEnable_False,
+   BME280I2C::I2CAddr_0x76 // I2C address. I2C specific.
+);
+
+BME280I2C bme(settings);
+
+bool getBMEsensors() {
+  float temp(NAN), hum(NAN), pres(NAN);
+
+  BME280::TempUnit tempUnit(BME280::TempUnit_Celsius);
+  BME280::PresUnit presUnit(BME280::PresUnit_Pa);
+
+  bme.read(pres, temp, hum, tempUnit, presUnit);
+  tempSensor.temperature= temp;
+  tempSensor.humidity   = hum;
+  tempSensor.pressure   = pres;
+  EnvironmentCalculations::TempUnit     envTempUnit =  EnvironmentCalculations::TempUnit_Celsius;
+  tempSensor.heatIndex  = EnvironmentCalculations::HeatIndex(temp, hum, envTempUnit);;
+  tempSensor.dewPoint   = EnvironmentCalculations::DewPoint(temp, hum, envTempUnit);
+  tempSensor.abshumidity= EnvironmentCalculations::AbsoluteHumidity(temp, hum, envTempUnit);
+  return true;
+}
+
 void setupTempSensor() {
   dht.setup(26, DHTesp::DHT22);
   Serial.println("DHT initiated");
@@ -108,6 +144,8 @@ void setupTempSensor() {
   recorde.tmax.dt=0;
   recorde.hmin.dt=0;
   recorde.hmax.dt=0;
+  recorde.pmin.dt=0;
+  recorde.pmax.dt=0;
   recorde.dmin.dt=0;
   recorde.dmax.dt=0;
   recorde.amin.dt=0;
@@ -120,6 +158,22 @@ void setupTempSensor() {
   recorde.gmax.dt=0;
   recorde.dur=0;
   getTemperature();
+  // BME280
+  if (!bme.begin()) {
+    Serial.println("Not found BME280 sensor!");
+    return;
+  }
+  switch(bme.chipModel())
+  {
+     case BME280::ChipModel_BME280:
+       Serial.println("Found BME280 sensor! Success.");
+       break;
+     case BME280::ChipModel_BMP280:
+       Serial.println("Found BMP280 sensor! No Humidity available.");
+       break;
+     default:
+       Serial.println("Found UNKNOWN sensor! Error!");
+  }  
 }
 
 #endif
