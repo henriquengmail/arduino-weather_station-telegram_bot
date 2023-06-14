@@ -130,6 +130,7 @@ bool checkBot(int) {
           str+="/logserial , enable log to serial\n";
           str+="/minmax , get min and max values\n";
           str+="/fscheck , check file system\n";
+          str+="/plot , plot data\n";
           str+="/about";
           myBot.sendMessage(msg, str);
         } //1039469,1039577,1039605,1039745,1041289,1042093,1042469,1042757,1046009,1046433,1046621,1046773,1082117,1083341,1083705,1085177,1103201,1103469,1103541,1103737,1103853,1104125,1104413*,1104629
@@ -353,6 +354,46 @@ bool checkBot(int) {
     		  str+=String("Criado em: 08/05/2022\n");
           str+=String("Compilado em: ")+ __DATE__ +" "+ __TIME__ +"\n";
           myBot.sendMessage(msg, str);
+        }
+		else if (msgText.startsWith("/plot")) {
+		  msgText.replace(" ","");
+		  if ((msgText=="/plot") || (msgText.length()<14)) {
+			  // Se apenas /plot na msg exibe um help 
+			  String str;
+				  str+=String("Uso do plot é: /plot dd/mm/yy var\n");
+				  str+=String("Onde var pode ser:\n");
+				  str+=String("1-AirTemp\n");
+				  str+=String("2-AirHumidity\n");
+				  str+=String("3-SoilResistance\n");
+				  str+=String("4-Irrig\n");
+				  str+=String("5-AbsHumidity\n");
+				  str+=String("6-dewPoint\n");
+				  str+=String("7-heatIndex\n");
+				  str+=String("8-gas\n");
+				  str+=String("9-pressure\n");
+			  myBot.sendMessage(msg, str);
+		  } else {
+			  // Se tem 'dd/mm/yy' e var manda uma msg para o servidor
+			  StaticJsonDocument<192> payload;
+			  payload["botPlot"] = "botPlot";
+			  payload["date"] = msgText.substring(5,13);
+			  payload["var"] = msgText.substring(13);
+			  String out;
+			  serializeJson(payload, out);
+			  WiFiClient client;
+			  HTTPClient http;
+			  if (http.begin(client, "http://35.206.71.241:8000/api/Webhook")) {
+			  } else {
+				Log.print(String("http.begin fail\n"));
+			  }
+			  http.addHeader("Content-Type", "application/json");
+			  Log.print(String("Posting:") + out + String("\n"));
+			  int httpResponseCode = http.POST(out);
+			  if (httpResponseCode!=201) {
+				Log.print(String("HTTP Response code: ")+String(httpResponseCode)+String("\n"));
+			  }
+			  http.end();
+		  } // resistência do solo = vmed/((3.2-vmed)/Rsup)-Rprego
         }
         // check if the reply keyboard is active
         else if (isKeyboardActive) {
